@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>星环站 · 轨道生活</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#dfe8ff;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hud{position:fixed;pointer-events:none;text-shadow:0 1px 3px #000,0 0 8px #000}
+#tl{left:18px;top:14px;font-size:13px;color:#bcd0f0}#tl b{color:#fff;font-variant-numeric:tabular-nums}
+#mission{left:50%;top:14px;transform:translateX(-50%);max-width:46vw;text-align:center;background:#0a1830b0;border:1px solid #5bc8ff66;border-radius:8px;padding:6px 14px;color:#cfeaff}
+#mission:empty{display:none}
+#needs{left:18px;bottom:16px;width:210px}
+.bar{display:grid;grid-template-columns:36px 1fr 28px;gap:8px;align-items:center;font-size:12px;margin-top:4px}
+.bar .track{height:6px;background:#ffffff22;border-radius:9px;overflow:hidden}.bar .track div{height:100%;border-radius:9px}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+#res{right:18px;bottom:16px;text-align:right;font-size:13px;color:#bcd0f0;font-variant-numeric:tabular-nums}
+#help{left:50%;bottom:10px;transform:translateX(-50%);font-size:12px;color:#8fa3c8;white-space:nowrap}
+#cross{left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff9;box-shadow:0 0 4px #000}
+#prompt{left:50%;top:58%;transform:translateX(-50%);font-size:16px;white-space:nowrap}
+kbd{display:inline-block;border:1px solid #fff9;border-radius:5px;padding:0 7px;margin-right:6px;background:#0008;font:inherit;font-weight:700}
+#toasts{right:18px;top:14px;display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:34vw}
+.toast{background:#0a1428d8;border-left:3px solid #5bc8ff;border-radius:4px;padding:6px 12px;font-size:13px;animation:in .25s ease-out}
+.toast.warn{border-color:#ffb347;color:#ffe2b8}
+@keyframes in{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.label{position:fixed;transform:translate(10px,-50%);font-size:12px;color:#9fc4ff;pointer-events:none;text-shadow:0 0 4px #000;white-space:nowrap}
+.label::before{content:"";position:absolute;left:-16px;top:50%;width:11px;height:11px;margin-top:-6px;border:1px solid #9fc4ff99;border-radius:50%}
+#act{display:none;left:50%;bottom:16%;transform:translateX(-50%);width:min(560px,70vw);text-align:center;z-index:6}
+#act .track{height:8px;background:#ffffff22;border-radius:9px;overflow:hidden;margin-top:8px}#actBar{height:100%;background:#5bc8ff;width:0}
+#fade{inset:0;background:#000;opacity:0;transition:opacity .8s;z-index:5}
+#visor{display:none;inset:0;box-shadow:inset 0 0 140px 30px #000a;border-radius:18% / 22%;background:radial-gradient(ellipse at 50% 120%,#ffd58010,transparent 50%)}
+#cruise{display:none;left:50%;bottom:9%;transform:translateX(-50%);text-align:center;font-size:15px;background:#0a1428b0;border:1px solid #5bc8ff55;border-radius:10px;padding:10px 22px;white-space:nowrap}
+#cruise b{color:#7ce0ff;font-size:17px}
+#helpbox{left:18px;top:110px;background:#0a1428d8;border:1px solid #ffffff22;border-radius:8px;padding:10px 14px;font-size:12px;color:#bcd0f0;max-width:330px}
+.hidden{display:none!important}
+.dim{color:#8fa3c8}.gold{color:#ffd66b}
+
+#panel{position:fixed;inset:0;z-index:10;background:#02040ccc;display:flex;align-items:center;justify-content:center;user-select:text}
+.card,.nav{background:#0c1426f2;border:1px solid #5bc8ff44;border-radius:14px;box-shadow:0 20px 60px #000}
+.card{width:min(620px,92vw);max-height:88vh;overflow:auto;padding:22px 26px}
+.nav{width:min(980px,94vw);height:min(640px,88vh);display:grid;grid-template-columns:300px 1fr;overflow:hidden}
+.nav-list{overflow:auto;border-right:1px solid #ffffff18;padding:8px}
+.nav-detail{overflow:auto;padding:22px 26px}
+.nav-sys{font-size:12px;color:#7ce0ff;letter-spacing:1px;padding:12px 8px 4px;display:flex;justify-content:space-between}
+.nav-sys small{color:#8fa3c8;letter-spacing:0}
+.nav-btn{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:6px 10px;color:inherit;font:inherit;cursor:pointer}
+.nav-btn small{display:block;color:#8fa3c8;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-btn:hover{background:#ffffff10}.nav-btn.on{background:#2a55b0}
+h2{margin:0 0 6px;font-size:22px}h2 small{font-size:13px;color:#8fa3c8;font-weight:400;margin-left:8px}
+table{border-collapse:collapse;width:100%;margin:10px 0}td{padding:5px 0;border-bottom:1px solid #ffffff12;vertical-align:top}td:first-child{color:#8fa3c8;width:42%;padding-right:12px}
+ul{padding-left:18px;margin:10px 0}li{margin:5px 0}
+.btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{background:linear-gradient(#3a6ae0,#2648b0);border:1px solid #7fa4ff;border-radius:9px;color:#fff;font:inherit;font-weight:600;padding:9px 20px;cursor:pointer}
+.btn.ghost{background:#ffffff10;border-color:#ffffff30}.btn[disabled]{opacity:.45;cursor:default}
+
+#intro{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 40%,#0a1a3ad0,#000000f2);display:flex;align-items:center;justify-content:center}
+#intro .card{width:min(640px,92vw)}
+#intro h1{margin:0;font-size:34px;letter-spacing:4px}
+#intro .k{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;margin:12px 0;font-size:13px}
+#intro .k b{color:#7ce0ff;font-weight:600}
+body.photo #tl,body.photo #mission,body.photo #needs,body.photo #res,body.photo #help,body.photo #cross,body.photo #prompt,body.photo #helpbox{display:none!important}
+#photoHint{display:none;left:50%;bottom:14px;transform:translateX(-50%);font-size:12px;color:#9fb4d8;white-space:nowrap;opacity:.75}
+body.photo #photoHint{display:block}
+body.film #tl,body.film #mission,body.film #needs,body.film #res,body.film #help,body.film #cross,body.film #prompt,body.film #toasts,body.film #helpbox{display:none!important}
+#caption{position:fixed;left:50%;top:5%;transform:translateX(-50%);background:#060c1cb8;border-radius:8px;padding:6px 18px;font-size:22px;letter-spacing:2px;color:#fff;text-shadow:0 2px 8px #000,0 0 18px #000;white-space:nowrap;pointer-events:none}
+
+/* 多级星图 */
+.smap{width:96vw;height:92vh;display:grid;grid-template-columns:1fr 360px;grid-template-rows:auto 1fr;background:#060a16f2;border:1px solid #5bc8ff44;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px #000}
+.smap-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid #ffffff14}
+.crumbs{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.crumb{background:none;border:1px solid transparent;border-radius:8px;color:#8fa3c8;font:inherit;padding:4px 10px;cursor:pointer}
+.crumb:hover{background:#ffffff10;color:#dfe8ff}.crumb.on{color:#fff;border-color:#5bc8ff66;background:#1c3a7066;font-weight:600}
+.sep{color:#4a5a7a}
+.smap-tools{display:flex;gap:8px}.btn.sm{padding:5px 12px;font-size:13px;font-weight:500}
+.smap-main{position:relative;min-height:0}
+#smapCv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.smap-hint{position:absolute;left:16px;right:16px;top:12px;font-size:12.5px;color:#9fb4d8;pointer-events:none;text-shadow:0 1px 3px #000;max-width:760px}
+.smap-keys{position:absolute;right:14px;bottom:10px;font-size:11.5px;color:#6f82a8;pointer-events:none}
+.smap-side{border-left:1px solid #ffffff14;padding:18px 20px;overflow:auto}
+.travel-track{height:3px;background:#ffffff20;margin:9px 0 4px;overflow:hidden}.travel-track i{display:block;height:100%;background:#80dfff;box-shadow:0 0 10px #5bc8ff}#cruise small{color:#90adc5;font-size:11px;letter-spacing:2px}.travel-dest{color:#b7cfe6}
+
+/* Flight controls stay separate from mission, telemetry and notifications. */
+#tl{width:30vw;max-width:440px;overflow-wrap:anywhere}
+#mission{max-width:32vw}
+#toasts{max-width:28vw;max-height:38vh;overflow:hidden}
+#flightControls{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:calc(100% - 500px);max-width:760px;display:none;justify-content:center;gap:6px;flex-wrap:wrap;z-index:3}
+body[data-mode="pilot"] #flightControls{display:flex}
+#flightControls button,#settingsButton{background:#0b1b30e8;border:1px solid #5bc8ff55;border-radius:7px;color:#deecff;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}
+#flightControls button:disabled{opacity:.4;cursor:default}#flightControls button[aria-pressed="true"]{background:#1f5274;border-color:#7ce0ff}
+#flightStatus{position:fixed;right:18px;bottom:110px;width:245px;padding:10px 12px;background:#081627ce;border:1px solid #5bc8ff44;border-radius:9px;display:none;font-size:12px;pointer-events:none}
+body[data-mode="pilot"] #flightStatus{display:block}#flightStatus b{color:#7ce0ff}#flightDirection{display:inline-block;font-size:20px;line-height:1;margin-right:8px}
+#settingsButton{position:fixed;right:18px;bottom:70px;z-index:3}
+body[data-mode="pilot"] #help{bottom:94px;white-space:normal;text-align:center;max-width:calc(100% - 530px)}
+body.photo #flightControls,body.photo #flightStatus,body.photo #settingsButton,body.film #flightControls,body.film #flightStatus,body.film #settingsButton{display:none!important}
+#helpbox{top:220px;max-height:calc(100vh - 320px);overflow:auto;pointer-events:auto;z-index:4}
+.btn:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid #7ce0ff;outline-offset:3px}
+@media(max-width:950px){
+ #mission{top:10px;max-width:none;width:calc(100% - 36px);font-size:12px;padding:5px 10px}
+ #tl{top:80px;width:55vw;font-size:12px}#toasts{top:80px;max-width:37vw;font-size:12px;max-height:30vh}
+ #flightControls{width:calc(100% - 28px);bottom:12px}body[data-mode="pilot"] #help{bottom:98px;max-width:90vw}
+ #flightStatus{bottom:140px;width:220px}body[data-mode="pilot"] #needs{bottom:140px;width:160px}
+ body[data-mode="pilot"] #res{bottom:112px}#settingsButton{bottom:250px}
+ .smap{grid-template-columns:minmax(0,1fr) 280px}.smap-top{gap:4px;padding:8px}.crumb{padding:3px 5px}.smap-tools .btn{padding:5px}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="fade" class="hud"></div>
+<div id="visor" class="hud"></div>
+<div id="labels"></div>
+<div id="tl" class="hud"></div>
+<div id="mission" class="hud"></div>
+<div id="needs" class="hud"></div>
+<div id="res" class="hud"></div>
+<div id="help" class="hud"></div>
+<div id="flightControls" aria-label="驾驶操作">
+<button data-flight="KeyL" id="lockButton">锁定 L</button><button data-flight="KeyX">停止 X</button><button data-flight="KeyB" id="assistButton">自由飞行 B</button><button data-flight="KeyV">视角 V</button><button data-flight="KeyG">扫描 G</button><button data-flight="KeyM">星图 M</button><button data-flight="KeyP">观景 P</button>
+</div>
+<div id="flightStatus"><span id="flightDirection">↑</span><b id="flightTargetName"></b><div id="flightTelemetry"></div></div>
+<button id="settingsButton" data-a="settings" title="按 Esc 释放鼠标后点击">画质与声音</button>
+<div id="cross" class="hud"></div>
+<div id="prompt" class="hud"></div>
+<div id="toasts" class="hud"></div>
+<div id="cruise" class="hud"></div>
+<div id="photoHint" class="hud"></div>
+<div id="act" class="hud"><div id="actName"></div><div class="track"><div id="actBar"></div></div></div>
+<div id="helpbox" class="hud hidden">
+  <b>舱内</b>：鼠标转头，WASD 飘行，空格 / C 上下，F 互动<br>
+  <b>出舱</b>：WASD / 空格 / C 喷气，Q / E 滚转，X 刹停<br>
+  <b>探索</b>：L 锁定 / 解除，A/D 环绕，W/S 接近 / 远离，N 音效开关<br>
+  <b>观景</b>：P 开关，K 隐藏飞船，J 保存照片<br>
+  <b>驾驶</b>：B 切换自由飞行 / 精细驾驶，V 切视角，U 脱离对接，F 自动对接，G 扫描<br>
+  <b>自由飞行</b>：鼠标转向，W/S 前后，A/D 平移，空格/C 升降，Shift 四倍速，X 急停（精细驾驶 Shift 为 1g 主引擎）<br>
+  <b>观景</b>：P 进入 / 退出，滚轮与 Z / X 变焦，驾驶时鼠标绕飞船转动，T 俯瞰天体<br>
+  <b>星图</b>：单击选择，双击进入下一层，滚轮缩放（缩到底回上一层），退格键返回<br>
+  <b>通用</b>：M 星图导航，[ ] 调时间流速，Esc 释放鼠标 / 关闭面板<br>
+  没有鼠标锁定时可用方向键转头。
+</div>
+<div id="panel" class="hidden"></div>
+<div id="intro"><div class="card">
+  <h1>星环站</h1><p class="dim" style="margin:2px 0 14px">近地轨道 · 高度 408 公里 · 每 92 分钟绕地球一圈</p>
+  <p>你是星环站的驻站乘员。在失重的舱段里吃饭、睡觉、锻炼、种菜、做实验，出舱修理太阳翼；然后登上停靠在前端对接口的聚变飞船「远航者号」，去月球、行星，以及别的恒星。</p>
+  <p class="dim">这里的地球、行星和 8700 多颗恒星都在它们此刻真实的位置上；轨道周期、昼夜交替、航行时间和时间膨胀都按真实物理计算。</p>
+  <div class="k"><b>鼠标</b><span>转头 / 转向（点击画面锁定鼠标，Esc 释放）</span><b>W A S D</b><span>前后左右飘行</span><b>空格 / C</b><span>上 / 下</span><b>F</b><span>与眼前的东西互动</span><b>M</b><span>星图导航</span><b>P</b><span>观景模式（隐藏界面、自由镜头、望远镜变焦）</span><b>[ 和 ]</b><span>调慢 / 调快时间</span><b>H</b><span>随时查看全部按键</span></div>
+  <p class="dim">屏幕上方会一直显示下一步该做什么。进度自动保存。</p>
+  <div class="btns"><button class="btn" id="start">进入空间站</button></div>
+</div></div>
+<script src="lib/three.min.js"></script>
+<script src="lib/GLTFLoader.js"></script>
+<script src="data/texture-manifest.js"></script>
+<script src="src/texture-assets.js"></script>
+<script src="src/surface-detail.js"></script>
+<script src="data/iss.js"></script>
+<script src="data/stars.js"></script>
+<script src="data/near.js"></script>
+<script src="src/data.js"></script>
+<script src="src/world.js"></script>
+<script src="src/models.js"></script>
+<script src="src/starmap.js"></script>
+<script src="src/journey.js"></script>
+<script src="src/flight-audio.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>

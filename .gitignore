@@ -1,0 +1,8 @@
+.DS_Store
+# 录制产物（视频、音乐、截图、测试报告），体积大，按需用 tools/ 下的脚本重新生成
+exports/
+*.mp4
+*.mp3
+星环站-科技感Demo-封面.jpg
+# 旧版整包贴图，游戏已改用 data/texture-manifest.js + data/texture-lod/，由 tools/build-assets.py 生成
+data/textures.js
