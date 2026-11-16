@@ -7,9 +7,9 @@
 住进近地轨道 408 公里的空间站，在失重中吃饭、种菜、做实验、出舱维修；<br>
 再驾驶聚变飞船「远航者号」飞往月球、土星，乃至 40 光年外的 TRAPPIST-1。
 
-[**▶ 在线试玩**](https://zoroperona.github.io/space-station-life/) · [下载最新版本](https://github.com/zoroperona/space-station-life/releases/latest) · [观看演示视频](docs/media/demo.mp4)
+[**▶ 在线试玩**](https://zoroperona.github.io/space-station-life/) · [下载最新版本](https://github.com/zoroperona/space-station-life/releases/latest) · [观看演示视频](https://zoroperona.github.io/space-station-life/docs/media/demo.mp4)
 
-<a href="docs/media/demo.mp4"><img src="docs/media/preview.gif" alt="星环站游戏画面" width="800"></a>
+<a href="https://zoroperona.github.io/space-station-life/docs/media/demo.mp4"><img src="docs/media/preview.gif" alt="星环站游戏画面" width="800"></a>
 
 <sub>点击动图观看完整演示视频（52 秒，有配乐）。画面均为游戏内实时渲染。</sub>
 
